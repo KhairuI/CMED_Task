@@ -1,5 +1,6 @@
 package com.example.cmed_task.views
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -65,9 +66,7 @@ class Task2Activity : BaseActivity<Task2ViewModel, Task2Repository>() {
                         // get data
                         val body = it.value.body()
                         body?.let { data ->
-                            Log.d("xxx", "data: $data")
                             if (data.isNotEmpty()) {
-                                Log.d("xxx", "setting data")
                                 setData(data)
                             }
                         }
@@ -90,7 +89,6 @@ class Task2Activity : BaseActivity<Task2ViewModel, Task2Repository>() {
                         "Network Error",
                         Toast.LENGTH_SHORT
                     ).show()
-                    Log.e("xxx", "$it")
 
                 }
             }
@@ -104,7 +102,10 @@ class Task2Activity : BaseActivity<Task2ViewModel, Task2Repository>() {
             binding.tvNoData.visibility = View.GONE
             characterAdapter = CharacterAdapter(this, object : CharacterAdapter.OnClickListener {
                 override fun onClick(character: CharacterItems) {
-                   
+                    val intent = Intent(this@Task2Activity, DetailsActivity::class.java).apply {
+                        putExtra("character", character)
+                    }
+                    startActivity(intent)
                 }
             })
 

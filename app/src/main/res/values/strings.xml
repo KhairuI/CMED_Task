@@ -5,4 +5,16 @@
     <string name="download">Download</string>
     <string name="task_2_here">Task 2 here</string>
     <string name="no_data">No data to show</string>
+    <string name="species">Species: Not Given</string>
+    <string name="house">House: Not Given</string>
+    <string name="gender">Gender: Not Given</string>
+    <string name="birth_date">Date of Birth: Not Given</string>
+    <string name="birth_year">Birth Year: Not Given</string>
+    <string name="ancestry">Ancestry: Not Given</string>
+    <string name="eye_colour">Eye Colour: Not Given</string>
+    <string name="hair_colour">Hair Colour: Not Given</string>
+    <string name="patronus">Patronus: Not Given</string>
+    <string name="actor">Actor: Not Given</string>
+
+
 </resources>

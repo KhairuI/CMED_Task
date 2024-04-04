@@ -1,8 +1,8 @@
 package com.example.cmed_task.base
 
-import android.app.Activity
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -10,7 +10,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.cmed_task.network.RemoteDataSource
 import com.example.cmed_task.viewmodel.NetworkViewModelFactory
+import java.io.Serializable
 
+@Suppress("UNCHECKED_CAST")
 abstract class BaseActivity<VM : ViewModel, R : BaseRepository> : AppCompatActivity() {
 
 
@@ -58,17 +60,19 @@ abstract class BaseActivity<VM : ViewModel, R : BaseRepository> : AppCompatActiv
     }
 
 
-    fun invokeActivity(activity: Activity, cls: Class<*>?) {
-        val intent = Intent(activity, cls)
-        activity.startActivity(intent)
-    }
-
     fun invokeActivityAndFinish(cls: Class<*>?) {
         val intent = Intent(this, cls).apply {
             flags = FLAG_ACTIVITY_CLEAR_TASK
         }
         startActivity(intent)
         finish()
+    }
+
+    fun <T : Serializable?> getSerializable(intent: Intent, key: String, className: Class<T>): T {
+        return if (Build.VERSION.SDK_INT >= 33)
+            intent.getSerializableExtra(key, className)!!
+        else
+            intent.getSerializableExtra(key) as T
     }
 
 
