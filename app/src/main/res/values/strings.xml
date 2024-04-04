@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">CMED_Task</string>
+    <string name="task_1">Task 1</string>
+    <string name="task_2">Task 2</string>
+    <string name="download">Download</string>
+    <string name="task_2_here">Task 2 here</string>
+    <string name="no_data">No data to show</string>
+</resources>
