@@ -15,6 +15,7 @@
     <string name="hair_colour">Hair Colour: Not Given</string>
     <string name="patronus">Patronus: Not Given</string>
     <string name="actor">Actor: Not Given</string>
+    <string name="txt_zero">0</string>
 
 
 </resources>

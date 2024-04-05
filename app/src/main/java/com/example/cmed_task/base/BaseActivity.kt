@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.cmed_task.network.RemoteDataSource
+import com.example.cmed_task.network.RemoteVideoSource
 import com.example.cmed_task.viewmodel.NetworkViewModelFactory
 import java.io.Serializable
 
@@ -18,6 +19,7 @@ abstract class BaseActivity<VM : ViewModel, R : BaseRepository> : AppCompatActiv
 
     lateinit var viewModel: VM
     protected val remoteDataSource = RemoteDataSource()
+    protected val remoteVideoSource = RemoteVideoSource()
 
     private fun setWindow() {
        /* window.apply {

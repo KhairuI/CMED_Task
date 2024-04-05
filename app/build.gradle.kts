@@ -60,6 +60,10 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.converter.scalars)
+    implementation(libs.retrofit2.converter.moshi)
+
+    // Moshi
+    implementation(libs.squareup.moshi.kotlin)
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)

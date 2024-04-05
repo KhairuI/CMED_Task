@@ -11,6 +11,11 @@ class Task2Repository(private val api: ApiService) : BaseRepository() {
         api.characterApiCall()
     }
 
+    // get all character list
+    suspend fun getVideo() = safeApiCall {
+        api.videoApiCall()
+    }
+
 
 
 }
