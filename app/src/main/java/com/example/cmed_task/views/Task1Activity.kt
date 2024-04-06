@@ -31,7 +31,7 @@ class Task1Activity : BaseActivity<Task2ViewModel, Task2Repository>() {
     // init all variable
     private lateinit var binding: ActivityTask1Binding
     private lateinit var loadingDialog: LoadingDialog
-    val timestamp = System.currentTimeMillis()
+    private val timestamp = System.currentTimeMillis()
 
     override fun getLayoutResourceId(): View {
         binding = ActivityTask1Binding.inflate(layoutInflater)
@@ -99,6 +99,7 @@ class Task1Activity : BaseActivity<Task2ViewModel, Task2Repository>() {
     @SuppressLint("SetTextI18n")
     @OptIn(DelicateCoroutinesApi::class)
     private fun saveFile(body: ResponseBody, fileName: String) {
+
         binding.btnDownload.apply {
             text = "Downloading..."
             isEnabled = false
@@ -134,14 +135,13 @@ class Task1Activity : BaseActivity<Task2ViewModel, Task2Repository>() {
             outputStream.close()
             inputStream.close()
 
-            binding.btnDownload.apply {
-                text = "Download"
-                isEnabled = true
+            withContext(Dispatchers.Main) {
+                binding.btnDownload.apply {
+                    text = "Download"
+                    isEnabled = true
+                }
             }
-
         }
-
-
     }
 
 }

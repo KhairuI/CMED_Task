@@ -27,9 +27,15 @@ class RemoteVideoSource {
                         }
                         client.addInterceptor(logging)
                     }
-                }.readTimeout(30L, TimeUnit.SECONDS).writeTimeout(30L, TimeUnit.SECONDS).build()
+                }.readTimeout(30L, TimeUnit.SECONDS)
+                    .writeTimeout(30L, TimeUnit.SECONDS)
+                    .build()
             )
-            .addConverterFactory(MoshiConverterFactory.create(Moshi.Builder().add(KotlinJsonAdapterFactory()).build()))
+            .addConverterFactory(
+                MoshiConverterFactory.create(
+                    Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+                ).asLenient()
+            )
             .build()
             .create(api)
     }
