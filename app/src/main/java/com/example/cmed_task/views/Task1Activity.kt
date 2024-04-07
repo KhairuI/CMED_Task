@@ -1,25 +1,38 @@
 package com.example.cmed_task.views
 
 import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.ServiceConnection
 import android.os.Bundle
-import android.os.Environment
+import android.os.IBinder
+import android.os.Message
+import android.os.Messenger
+import android.os.RemoteException
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import com.example.cmed_task.base.BaseActivity
 import com.example.cmed_task.databinding.ActivityTask1Binding
 import com.example.cmed_task.network.ApiService
 import com.example.cmed_task.repository.Task2Repository
+import com.example.cmed_task.service.MyService
+import com.example.cmed_task.utils.AppConstants
+import com.example.cmed_task.utils.AppConstants.CLOSE_NOTIFICATION
+import com.example.cmed_task.utils.AppConstants.DOWNLOAD_PROGRESS
+import com.example.cmed_task.utils.AppConstants.SHOW_NOTIFICATION
 import com.example.cmed_task.utils.DataState
 import com.example.cmed_task.utils.LoadingDialog
 import com.example.cmed_task.viewmodel.Task2ViewModel
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
 import org.json.JSONException
-import java.io.File
+import org.json.JSONObject
 
 class Task1Activity : BaseActivity<Task2ViewModel, Task2Repository>() {
 
@@ -32,116 +45,126 @@ class Task1Activity : BaseActivity<Task2ViewModel, Task2Repository>() {
     private lateinit var binding: ActivityTask1Binding
     private lateinit var loadingDialog: LoadingDialog
     private val timestamp = System.currentTimeMillis()
+    private lateinit var intent: Intent
+
+    private var mService: Messenger? = null
+
+    private var bound: Boolean = false
+
 
     override fun getLayoutResourceId(): View {
         binding = ActivityTask1Binding.inflate(layoutInflater)
         return binding.root
     }
 
+    private val mConnection = object : ServiceConnection {
+
+        override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            // This is called when the connection with the service has been
+            // established, giving us the object we can use to
+            // interact with the service.  We are communicating with the
+            // service using a Messenger, so here we get a client-side
+            // representation of that from the raw IBinder object.
+            mService = Messenger(service)
+            bound = true
+        }
+
+        override fun onServiceDisconnected(className: ComponentName) {
+            // This is called when the connection with the service has been
+            // unexpectedly disconnected&mdash;that is, its process crashed.
+            mService = null
+            bound = false
+        }
+    }
+
+    private fun sayHello(status: Int) {
+        if (!bound) return
+        // Create and send a message to the service, using a supported 'what' value.
+        val msg: Message = Message.obtain(null, status, 0, 0)
+        try {
+            mService?.send(msg)
+        } catch (e: RemoteException) {
+            e.printStackTrace()
+        }
+
+    }
+
+
     override fun init(savedInstanceState: Bundle?) {
+
 
         // loading
         loadingDialog = LoadingDialog(this)
 
         // observe all response
-        observeVideoResponse()
+        //  observeVideoResponse()
 
         binding.btnTask2.setOnClickListener {
             invokeActivity(Task2Activity::class.java)
         }
 
-        binding.btnDownload.setOnClickListener { viewModel.getVideo() }
+        binding.btnDownload.setOnClickListener {
+            intent = Intent(this, MyService::class.java).also { intent ->
+                bindService(intent, mConnection, Context.BIND_AUTO_CREATE)
+            }
+            startService(intent)
+        }
 
     }
 
-    private fun observeVideoResponse() {
-        viewModel.getVideoResponse.observe(this) {
+    private val mTimeReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        @SuppressLint("SetTextI18n")
+        override fun onReceive(context: Context, intent: Intent) {
 
-            when (it) {
+            val value = intent.extras?.getInt(DOWNLOAD_PROGRESS)
+            Log.d("xxx", "onReceive: $value")
 
-                is DataState.Success -> {
+            value?.let { progress ->
+                binding.progressBar.progress = progress
+                binding.tvProgress.text = "$progress%"
 
-                    try {
-
-                        // gone loading
-                        if (loadingDialog.isShowing) loadingDialog.dismiss()
-
-                        // get data
-                        val body = it.value
-                        saveFile(body, timestamp.toString())
-
-
-                    } catch (e: JSONException) {
-                        e.printStackTrace()
+                if (progress > -1) {
+                    binding.btnDownload.apply {
+                        text = "Downloading..."
+                        isEnabled = false
                     }
-
                 }
-
-                is DataState.Loading -> {
-                    if (!loadingDialog.isShowing) loadingDialog.show()
-                }
-
-                is DataState.Error -> {
-                    // gone loading
-                    if (loadingDialog.isShowing) loadingDialog.dismiss()
-                    if (it.isNetworkError) Toast.makeText(
-                        this,
-                        "Network Error",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
+                if (progress == 100) {
+                    binding.btnDownload.apply {
+                        text = "Download"
+                        isEnabled = true
+                    }
                 }
             }
+
 
         }
     }
 
-    @SuppressLint("SetTextI18n")
-    @OptIn(DelicateCoroutinesApi::class)
-    private fun saveFile(body: ResponseBody, fileName: String) {
+    override fun onResume() {
+        super.onResume()
+        registerReceiver(mTimeReceiver, IntentFilter(AppConstants.INTENT_FILE))
+        sayHello(CLOSE_NOTIFICATION)
+    }
 
-        binding.btnDownload.apply {
-            text = "Downloading..."
-            isEnabled = false
+    override fun onPause() {
+        super.onPause()
+        unregisterReceiver(mTimeReceiver)
+        sayHello(SHOW_NOTIFICATION)
+    }
+
+    override fun onDestroy() {
+        stopService(Intent(this, MyService::class.java))
+        super.onDestroy()
+    }
+
+    override fun onStop() {
+        try {
+            unregisterReceiver(mTimeReceiver)
+        } catch (e: Exception) {
+
         }
-
-        GlobalScope.launch(Dispatchers.IO) {
-
-            val downloadFolder =
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            val destinationFile = File(downloadFolder.absolutePath, "file_${fileName}.zip")
-
-            val fileSize = body.contentLength()
-            val inputStream = body.byteStream()
-            val outputStream = destinationFile.outputStream()
-
-            var progressBytes: Long = 0
-            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-            var bytes = inputStream.read(buffer)
-            while (bytes >= 0) {
-
-                progressBytes += bytes
-                val downloadProgress = (progressBytes.toFloat() / fileSize.toFloat() * 100).toInt()
-
-                withContext(Dispatchers.Main) {
-                    binding.progressBar.progress = downloadProgress
-                    binding.tvProgress.text = "$downloadProgress%"
-                }
-
-                outputStream.write(buffer, 0, bytes)
-                bytes = inputStream.read(buffer)
-
-            }
-            outputStream.close()
-            inputStream.close()
-
-            withContext(Dispatchers.Main) {
-                binding.btnDownload.apply {
-                    text = "Download"
-                    isEnabled = true
-                }
-            }
-        }
+        super.onStop()
     }
 
 }
