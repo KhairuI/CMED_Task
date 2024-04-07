@@ -38,7 +38,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".service.MyService"
+        <service android:name=".service.DownloadService"
             android:exported="false"/>
     </application>
 

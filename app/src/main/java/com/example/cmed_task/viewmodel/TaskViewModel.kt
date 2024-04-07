@@ -5,13 +5,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.cmed_task.model.CharacterModel
-import com.example.cmed_task.repository.Task2Repository
+import com.example.cmed_task.repository.TaskRepository
 import com.example.cmed_task.utils.DataState
 import kotlinx.coroutines.launch
 import okhttp3.ResponseBody
 import retrofit2.Response
 
-class Task2ViewModel(private val repository: Task2Repository) : ViewModel() {
+class TaskViewModel(private val repository: TaskRepository) : ViewModel() {
 
 
     // get Quote list

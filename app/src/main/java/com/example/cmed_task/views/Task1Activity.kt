@@ -12,25 +12,23 @@ import android.os.IBinder
 import android.os.Message
 import android.os.Messenger
 import android.os.RemoteException
-import android.util.Log
 import android.view.View
 import com.example.cmed_task.base.BaseActivity
 import com.example.cmed_task.databinding.ActivityTask1Binding
 import com.example.cmed_task.network.ApiService
-import com.example.cmed_task.repository.Task2Repository
-import com.example.cmed_task.service.MyService
+import com.example.cmed_task.repository.TaskRepository
+import com.example.cmed_task.service.DownloadService
 import com.example.cmed_task.utils.AppConstants
 import com.example.cmed_task.utils.AppConstants.CLOSE_NOTIFICATION
 import com.example.cmed_task.utils.AppConstants.DOWNLOAD_PROGRESS
 import com.example.cmed_task.utils.AppConstants.SHOW_NOTIFICATION
-import com.example.cmed_task.utils.LoadingDialog
-import com.example.cmed_task.viewmodel.Task2ViewModel
+import com.example.cmed_task.viewmodel.TaskViewModel
 
-class Task1Activity : BaseActivity<Task2ViewModel, Task2Repository>() {
+class Task1Activity : BaseActivity<TaskViewModel, TaskRepository>() {
 
-    override fun getViewModel() = Task2ViewModel::class.java
+    override fun getViewModel() = TaskViewModel::class.java
     override fun getRepository() =
-        Task2Repository(remoteVideoSource.buildApi(ApiService::class.java))
+        TaskRepository(remoteVideoSource.buildApi(ApiService::class.java))
 
 
     // init all variable
@@ -45,6 +43,21 @@ class Task1Activity : BaseActivity<Task2ViewModel, Task2Repository>() {
     override fun getLayoutResourceId(): View {
         binding = ActivityTask1Binding.inflate(layoutInflater)
         return binding.root
+    }
+
+    override fun init(savedInstanceState: Bundle?) {
+
+        binding.btnTask2.setOnClickListener {
+            invokeActivity(Task2Activity::class.java)
+        }
+
+        binding.btnDownload.setOnClickListener {
+            intent = Intent(this, DownloadService::class.java).also { intent ->
+                bindService(intent, mConnection, Context.BIND_AUTO_CREATE)
+            }
+            startService(intent)
+        }
+
     }
 
     private val mConnection = object : ServiceConnection {
@@ -67,22 +80,6 @@ class Task1Activity : BaseActivity<Task2ViewModel, Task2Repository>() {
             mService?.send(msg)
         } catch (e: RemoteException) {
             e.printStackTrace()
-        }
-
-    }
-
-
-    override fun init(savedInstanceState: Bundle?) {
-
-        binding.btnTask2.setOnClickListener {
-            invokeActivity(Task2Activity::class.java)
-        }
-
-        binding.btnDownload.setOnClickListener {
-            intent = Intent(this, MyService::class.java).also { intent ->
-                bindService(intent, mConnection, Context.BIND_AUTO_CREATE)
-            }
-            startService(intent)
         }
 
     }
@@ -127,7 +124,7 @@ class Task1Activity : BaseActivity<Task2ViewModel, Task2Repository>() {
 
     override fun onDestroy() {
         alertNotification(CLOSE_NOTIFICATION)
-        stopService(Intent(this, MyService::class.java))
+        stopService(Intent(this, DownloadService::class.java))
         super.onDestroy()
     }
 

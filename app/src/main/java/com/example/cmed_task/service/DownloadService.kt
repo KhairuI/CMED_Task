@@ -12,11 +12,12 @@ import android.os.IBinder
 import android.os.Looper
 import android.os.Message
 import android.os.Messenger
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.example.cmed_task.R
 import com.example.cmed_task.network.ApiService
 import com.example.cmed_task.network.RemoteVideoSource
-import com.example.cmed_task.repository.Task2Repository
+import com.example.cmed_task.repository.TaskRepository
 import com.example.cmed_task.utils.AppConstants.CLOSE_NOTIFICATION
 import com.example.cmed_task.utils.AppConstants.DOWNLOAD_PROGRESS
 import com.example.cmed_task.utils.AppConstants.INTENT_FILE
@@ -31,7 +32,7 @@ import org.json.JSONException
 import java.io.File
 
 
-class MyService : Service() {
+class DownloadService : Service() {
 
     private val intent = Intent(INTENT_FILE)
     private val fileName = System.currentTimeMillis().toString()
@@ -40,7 +41,7 @@ class MyService : Service() {
     private val CHANNEL_ID = "101"
     private val NOTIFICATION_ID = 1
     private var isNotificationShow = false
-    private val repository = Task2Repository(RemoteVideoSource().buildApi(ApiService::class.java))
+    private val repository = TaskRepository(RemoteVideoSource().buildApi(ApiService::class.java))
 
     private lateinit var mMessenger: Messenger
 
@@ -59,13 +60,13 @@ class MyService : Service() {
         super.onCreate()
 
         GlobalScope.launch(Dispatchers.IO) {
-            when (val res = repository.getVideo()) {
+            when (val response = repository.getVideo()) {
                 is DataState.Success -> {
 
                     try {
 
                         // get data
-                        val body = res.value
+                        val body = response.value
                         saveFile(body)
 
                     } catch (e: JSONException) {
@@ -76,7 +77,13 @@ class MyService : Service() {
 
                 is DataState.Loading -> {}
 
-                is DataState.Error -> {}
+                is DataState.Error -> {
+                    if (response.isNetworkError) Toast.makeText(
+                        applicationContext,
+                        "Network Error",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         }
 

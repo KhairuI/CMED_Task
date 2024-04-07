@@ -3,21 +3,20 @@ package com.example.cmed_task.views
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.View
-import androidx.activity.OnBackPressedCallback
 import com.bumptech.glide.Glide
 import com.example.cmed_task.R
 import com.example.cmed_task.base.BaseActivity
 import com.example.cmed_task.databinding.ActivityDetailsBinding
 import com.example.cmed_task.model.CharacterItems
 import com.example.cmed_task.network.ApiService
-import com.example.cmed_task.repository.Task2Repository
-import com.example.cmed_task.viewmodel.Task2ViewModel
+import com.example.cmed_task.repository.TaskRepository
+import com.example.cmed_task.viewmodel.TaskViewModel
 
-class DetailsActivity : BaseActivity<Task2ViewModel, Task2Repository>() {
+class DetailsActivity : BaseActivity<TaskViewModel, TaskRepository>() {
 
-    override fun getViewModel() = Task2ViewModel::class.java
+    override fun getViewModel() = TaskViewModel::class.java
     override fun getRepository() =
-        Task2Repository(remoteDataSource.buildApi(ApiService::class.java))
+        TaskRepository(remoteDataSource.buildApi(ApiService::class.java))
 
     // init all variable
     private lateinit var binding: ActivityDetailsBinding
@@ -28,11 +27,8 @@ class DetailsActivity : BaseActivity<Task2ViewModel, Task2Repository>() {
     }
 
     override fun init(savedInstanceState: Bundle?) {
-
         getData()
-
         binding.ivBack.setOnClickListener { finish() }
-        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
     }
 
     @SuppressLint("SetTextI18n")
@@ -62,11 +58,5 @@ class DetailsActivity : BaseActivity<Task2ViewModel, Task2Repository>() {
         character.patronus?.let { patronus -> binding.tvPatronus.text = "Patronus: $patronus" }
         character.actor?.let { actor -> binding.tvActor.text = "Actor: $actor" }
 
-    }
-
-    private val onBackPressedCallback: OnBackPressedCallback = object : OnBackPressedCallback(true) {
-        override fun handleOnBackPressed() {
-            finish()
-        }
     }
 }

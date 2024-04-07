@@ -1,6 +1,5 @@
 package com.example.cmed_task.utils
 
-import okhttp3.ResponseBody
 
 sealed class DataState<out T> {
     data class Success<out T>(val value: T) : DataState<T>()
