@@ -12,8 +12,6 @@ import android.os.IBinder
 import android.os.Looper
 import android.os.Message
 import android.os.Messenger
-import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.example.cmed_task.R
 import com.example.cmed_task.network.ApiService
@@ -41,44 +39,24 @@ class MyService : Service() {
     private lateinit var notification: Notification
     private val CHANNEL_ID = "101"
     private val NOTIFICATION_ID = 1
+    private var isNotificationShow = false
+    private val repository = Task2Repository(RemoteVideoSource().buildApi(ApiService::class.java))
 
     private lateinit var mMessenger: Messenger
 
     private val handler = object : Handler(Looper.getMainLooper()) {
         override fun handleMessage(msg: Message) {
             when (msg.what) {
-                SHOW_NOTIFICATION -> notificationManager.notify(NOTIFICATION_ID, notification)
-                CLOSE_NOTIFICATION -> notificationManager.cancel(NOTIFICATION_ID)
+                SHOW_NOTIFICATION -> isNotificationShow = true
+                CLOSE_NOTIFICATION -> isNotificationShow = false
                 else -> super.handleMessage(msg)
             }
         }
     }
 
-    /* internal class IncomingHandler(
-         context: Context,
-         private val applicationContext: Context = context.applicationContext
-     ) : Handler() {
-         override fun handleMessage(msg: Message) {
-             when (msg.what) {
-                 SHOW_NOTIFICATION -> {
-
-                 }
-
-
-                 CLOSE_NOTIFICATION ->
-                     Toast.makeText(applicationContext, "ON RESUME", Toast.LENGTH_SHORT).show()
-
-                 else -> super.handleMessage(msg)
-             }
-         }
-     }*/
-
-    private val repository = Task2Repository(RemoteVideoSource().buildApi(ApiService::class.java))
-
     @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate() {
         super.onCreate()
-        Log.d("xxx", "Service Start")
 
         GlobalScope.launch(Dispatchers.IO) {
             when (val res = repository.getVideo()) {
@@ -133,18 +111,9 @@ class MyService : Service() {
             outputStream.close()
             inputStream.close()
         }
-
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        /*Log.d("xxx", "onStartCommand Start")
-        Log.d("xxx", "flags $flags")
-        Log.d("xxx", "startId $startId")
-
-        val videoData = intent?.getStringExtra(INTENT_FILE)
-        Log.d("xxx", "videoData: $videoData")*/
-
-
         return START_STICKY
     }
 
@@ -167,14 +136,18 @@ class MyService : Service() {
             .build()
     }
 
-    private fun updateNotification(data: String) {
-        notification = showNotification(data)
+    private fun updateNotification(progressValue: String) {
+        notification = showNotification(progressValue)
         notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(NOTIFICATION_ID, notification)
+
+        if (isNotificationShow) {
+            notificationManager.notify(NOTIFICATION_ID, notification)
+        } else {
+            notificationManager.cancel(NOTIFICATION_ID)
+        }
     }
 
     override fun onBind(p0: Intent?): IBinder? {
-        //   Toast.makeText(applicationContext, "binding", Toast.LENGTH_SHORT).show()
         mMessenger = Messenger(handler)
         return mMessenger.binder
     }

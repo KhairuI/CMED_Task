@@ -3,6 +3,7 @@ package com.example.cmed_task.views
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.View
+import androidx.activity.OnBackPressedCallback
 import com.bumptech.glide.Glide
 import com.example.cmed_task.R
 import com.example.cmed_task.base.BaseActivity
@@ -31,6 +32,7 @@ class DetailsActivity : BaseActivity<Task2ViewModel, Task2Repository>() {
         getData()
 
         binding.ivBack.setOnClickListener { finish() }
+        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
     }
 
     @SuppressLint("SetTextI18n")
@@ -60,5 +62,11 @@ class DetailsActivity : BaseActivity<Task2ViewModel, Task2Repository>() {
         character.patronus?.let { patronus -> binding.tvPatronus.text = "Patronus: $patronus" }
         character.actor?.let { actor -> binding.tvActor.text = "Actor: $actor" }
 
+    }
+
+    private val onBackPressedCallback: OnBackPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            finish()
+        }
     }
 }

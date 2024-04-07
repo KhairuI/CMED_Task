@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import com.example.cmed_task.adapter.CharacterAdapter
 import com.example.cmed_task.base.BaseActivity
 import com.example.cmed_task.databinding.ActivityTask2Binding
@@ -47,6 +48,8 @@ class Task2Activity : BaseActivity<Task2ViewModel, Task2Repository>() {
         viewModel.getCharacterList()
 
         binding.ivBack.setOnClickListener { invokeActivityAndFinish(Task1Activity::class.java) }
+
+        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
 
     }
 
@@ -116,6 +119,12 @@ class Task2Activity : BaseActivity<Task2ViewModel, Task2Repository>() {
             characterAdapter.updateList(data as MutableList<CharacterItems>)
         }
 
+    }
+
+     private val onBackPressedCallback: OnBackPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            finish()
+        }
     }
 
 
