@@ -22,21 +22,11 @@ abstract class BaseActivity<VM : ViewModel, R : BaseRepository> : AppCompatActiv
     protected val remoteDataSource = RemoteDataSource()
     protected val remoteVideoSource = RemoteVideoSource()
 
-    private fun setWindow() {
-       /* window.apply {
-            clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
-            addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-            decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            statusBarColor = Color.TRANSPARENT
-        }*/
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         getLayoutResourceId()?.let { setContentView(it) }
         val factory = NetworkViewModelFactory(getRepository())
         viewModel = ViewModelProvider(this, factory)[getViewModel()]
-        setWindow()
         init(savedInstanceState)
     }
 
